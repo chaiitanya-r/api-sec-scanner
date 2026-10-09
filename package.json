@@ -1,0 +1,53 @@
+{
+  "name": "api-sec-scanner",
+  "version": "1.0.0",
+  "description": "Automated API Security Scanner & DAST Engine",
+  "type": "module",
+  "main": "src/index.js",
+  "bin": {
+    "api-sec-scan": "./src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "scan": "node src/index.js",
+    "serve": "node src/server.js",
+    "dashboard": "node src/server.js",
+    "testbed": "node testbed/server.js",
+    "build": "npm --prefix client run build",
+    "build:client": "npm --prefix client run build",
+    "client:dev": "npm --prefix client run dev",
+    "client:preview": "npm --prefix client run preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:all": "vitest run && npm --prefix client run build",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "clean": "node src/utils/clean.js"
+  },
+  "keywords": [
+    "security",
+    "api",
+    "dast",
+    "openapi",
+    "scanner",
+    "vulnerability-scanner",
+    "appsec",
+    "devsecops"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@apidevtools/swagger-parser": "^10.1.1",
+    "commander": "^12.1.0",
+    "express": "^5.2.1",
+    "p-limit": "^6.1.0",
+    "undici": "^6.20.1",
+    "yaml": "^2.6.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.14.0",
+    "eslint": "^9.14.0",
+    "globals": "^15.12.0",
+    "vitest": "^2.1.4"
+  }
+}

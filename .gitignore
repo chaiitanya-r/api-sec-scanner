@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+client/node_modules/
+
+# Production builds
+dist/
+client/dist/
+
+# Test & coverage artifacts
+coverage/
+.vitest/
+test/test-output-*
+
+# Scan output reports (preserve directory placeholder)
+reports/*.json
+reports/*.html
+!reports/.gitkeep
+/report.json
+/report.html
+
+# Environment & local credentials
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo

@@ -1,0 +1,55 @@
+openapi: 3.0.3
+info:
+  title: "Vulnerable Testbed API"
+  version: "1.0.0"
+  description: "Intentionally vulnerable local testbed API for api-sec-scanner DAST testing"
+servers:
+  - url: "http://localhost:3000"
+    description: "Local test server"
+security:
+  - bearerAuth: []
+paths:
+  /api/private-profile:
+    get:
+      summary: "Private user profile (Vulnerable: missing auth check)"
+      description: "Spec states auth is required, but server returns 200 without auth."
+      responses:
+        '200':
+          description: "User profile"
+        '401':
+          description: "Unauthorized"
+
+  /api/public-data:
+    get:
+      summary: "Public shared dataset (Vulnerable: Wildcard CORS and missing rate limit)"
+      security: []
+      responses:
+        '200':
+          description: "Public data"
+
+  /api/action-burst:
+    post:
+      summary: "Unrestricted burst action (Vulnerable: No rate limiting)"
+      security: []
+      responses:
+        '200':
+          description: "Action performed"
+
+  /api/secure-control:
+    get:
+      summary: "Fully hardened control endpoint (Baseline control with zero vulnerabilities)"
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: "Secure data"
+        '401':
+          description: "Unauthorized"
+        '429':
+          description: "Too Many Requests"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer

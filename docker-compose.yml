@@ -1,0 +1,60 @@
+services:
+  # 1. Interactive Web Dashboard & Report Management Server
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: api-sec-dashboard
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - HOST=0.0.0.0
+      - NODE_ENV=production
+    volumes:
+      - ./reports:/app/reports
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      - testbed
+
+  # 2. Mock Vulnerable Testbed API (for testing and demonstrations)
+  testbed:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: api-sec-testbed
+    restart: unless-stopped
+    command: ["node", "testbed/server.js"]
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+
+  # 3. CLI Automated Audit Runner (runs audit against testbed, saves to ./reports)
+  audit:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: api-sec-audit-runner
+    command: >
+      node src/index.js
+        --spec ./testbed/openapi.yaml
+        --base-url http://testbed:3000
+        --out /app/reports/docker-scan.json
+        --html /app/reports/docker-scan.html
+        --checks headers,cors,auth,rate
+        --burst 30
+        --i-own-this-target
+    volumes:
+      - ./reports:/app/reports
+    depends_on:
+      testbed:
+        condition: service_started
+    profiles:
+      - scan

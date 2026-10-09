@@ -1,0 +1,792 @@
+{
+  "scanner": "api-sec-scanner",
+  "version": "1.0.0",
+  "timestamp": "2026-10-08T15:12:26.496Z",
+  "target": "http://127.0.0.1:3000",
+  "specPath": "./testbed/openapi.yaml",
+  "durationMs": 157,
+  "summary": {
+    "critical": 0,
+    "high": 3,
+    "medium": 5,
+    "low": 14,
+    "info": 0,
+    "total": 22
+  },
+  "findings": [
+    {
+      "id": "AUTH-001",
+      "title": "Protected endpoint does not enforce authentication",
+      "severity": "HIGH",
+      "cvssScore": 7.5,
+      "endpoint": "/api/private-profile",
+      "method": "GET",
+      "description": "The OpenAPI specification marks this endpoint as requiring authentication, but a request without credentials returned HTTP 200 instead of 401 or 403.",
+      "evidence": {
+        "requestSent": {
+          "method": "GET",
+          "url": "http://127.0.0.1:3000/api/private-profile",
+          "headers": {}
+        },
+        "responseReceived": {
+          "status": 200,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "87",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Thu, 08 Oct 2026 15:12:26 GMT",
+            "etag": "W/\"57-yDtgZQ0zP9o0japGkyEBr5XVlZE\"",
+            "keep-alive": "timeout=5",
+            "server": "Vulnerable-DAST-Testbed/1.0",
+            "x-powered-by": "Express/4.21.0-Vulnerable"
+          },
+          "bodyExcerpt": "{\"id\":42,\"username\":\"alice_admin\",\"email\":\"alice@company.local\",\"role\":\"administrator\"}"
+        }
+      },
+      "remediation": {
+        "explanation": "Ensure authentication middleware is mounted and actively enforced for this route.",
+        "codeSnippet": "// Example authentication middleware enforcement\nimport { requireAuth } from \"./middleware/auth.js\";\n\napp.use(\"/api/private-profile\", requireAuth);"
+      }
+    },
+    {
+      "id": "AUTH-002",
+      "title": "Endpoint accepts malformed or invalid authentication token",
+      "severity": "HIGH",
+      "cvssScore": 7.5,
+      "endpoint": "/api/private-profile",
+      "method": "GET",
+      "description": "The endpoint returned HTTP 200 when supplied with an invalid placeholder token instead of returning 401 or 403.",
+      "evidence": {
+        "requestSent": {
+          "method": "GET",
+          "url": "http://127.0.0.1:3000/api/private-profile",
+          "headers": {
+            "Authorization": "[REDACTED]"
+          }
+        },
+        "responseReceived": {
+          "status": 200,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "87",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Thu, 08 Oct 2026 15:12:26 GMT",
+            "etag": "W/\"57-yDtgZQ0zP9o0japGkyEBr5XVlZE\"",
+            "keep-alive": "timeout=5",
+            "server": "Vulnerable-DAST-Testbed/1.0",
+            "x-powered-by": "Express/4.21.0-Vulnerable"
+          },
+          "bodyExcerpt": "{\"id\":42,\"username\":\"alice_admin\",\"email\":\"alice@company.local\",\"role\":\"administrator\"}"
+        }
+      },
+      "remediation": {
+        "explanation": "Validate token signature, structure, and integrity before granting access.",
+        "codeSnippet": "// Ensure cryptographic verification\nconst verified = jwt.verify(token, secretKey);"
+      }
+    },
+    {
+      "id": "RATE-LIMIT-001",
+      "title": "Missing Rate Limiting Enforcement",
+      "severity": "HIGH",
+      "cvssScore": 7.5,
+      "endpoint": "/api/private-profile",
+      "method": "GET",
+      "description": "The endpoint did not throttle or return HTTP 429 / Retry-After after a controlled burst of 30 requests, indicating missing rate limiting protections against automated abuse and resource exhaustion.",
+      "evidence": {
+        "requestSent": {
+          "method": "GET",
+          "url": "http://127.0.0.1:3000/api/private-profile",
+          "headers": {
+            "X-Audit-Probe-Id": "rate-check-30"
+          }
+        },
+        "responseReceived": {
+          "status": 200,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "87",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Thu, 08 Oct 2026 15:12:26 GMT",
+            "etag": "W/\"57-yDtgZQ0zP9o0japGkyEBr5XVlZE\"",
+            "keep-alive": "timeout=5",
+            "server": "Vulnerable-DAST-Testbed/1.0",
+            "x-powered-by": "Express/4.21.0-Vulnerable"
+          },
+          "bodyExcerpt": "{\"id\":42,\"username\":\"alice_admin\",\"email\":\"alice@company.local\",\"role\":\"administrator\"}"
+        }
+      },
+      "remediation": {
+        "explanation": "Implement rate limiting using express-rate-limit to protect sensitive endpoints from abuse.",
+        "codeSnippet": "import rateLimit from \"express-rate-limit\";\n\nconst limiter = rateLimit({\n  windowMs: 15 * 60 * 1000, // 15 minutes\n  max: 100, // Limit each IP to 100 requests per window\n  standardHeaders: true,\n  legacyHeaders: false,\n  message: { error: \"Too many requests, please try again later.\" }\n});\n\napp.use(\"/api/private-profile\", limiter);"
+      }
+    },
+    {
+      "id": "RATE-LIMIT-001",
+      "title": "Missing Rate Limiting Enforcement",
+      "severity": "MEDIUM",
+      "cvssScore": 5.5,
+      "endpoint": "/api/action-burst",
+      "method": "POST",
+      "description": "The endpoint did not throttle or return HTTP 429 / Retry-After after a controlled burst of 30 requests, indicating missing rate limiting protections against automated abuse and resource exhaustion.",
+      "evidence": {
+        "requestSent": {
+          "method": "POST",
+          "url": "http://127.0.0.1:3000/api/action-burst",
+          "headers": {
+            "X-Audit-Probe-Id": "rate-check-30"
+          }
+        },
+        "responseReceived": {
+          "status": 200,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "69",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Thu, 08 Oct 2026 15:12:26 GMT",
+            "etag": "W/\"45-Jau/sz2IKVvlewAkUbJzoOKvp1w\"",
+            "keep-alive": "timeout=5",
+            "server": "Vulnerable-DAST-Testbed/1.0",
+            "x-powered-by": "Express/4.21.0-Vulnerable"
+          },
+          "bodyExcerpt": "{\"success\":true,\"action\":\"burst_processed\",\"timestamp\":1791472346424}"
+        }
+      },
+      "remediation": {
+        "explanation": "Implement rate limiting using express-rate-limit to protect sensitive endpoints from abuse.",
+        "codeSnippet": "import rateLimit from \"express-rate-limit\";\n\nconst limiter = rateLimit({\n  windowMs: 15 * 60 * 1000, // 15 minutes\n  max: 100, // Limit each IP to 100 requests per window\n  standardHeaders: true,\n  legacyHeaders: false,\n  message: { error: \"Too many requests, please try again later.\" }\n});\n\napp.use(\"/api/action-burst\", limiter);"
+      }
+    },
+    {
+      "id": "HDR-CSP-001",
+      "title": "Missing Content-Security-Policy Header",
+      "severity": "MEDIUM",
+      "cvssScore": 5.5,
+      "endpoint": "/api/private-profile",
+      "method": "GET",
+      "description": "The response does not include a Content-Security-Policy (CSP) header, which helps mitigate Cross-Site Scripting (XSS) and data injection risks.",
+      "evidence": {
+        "requestSent": {
+          "method": "GET",
+          "url": "http://127.0.0.1:3000/api/private-profile",
+          "headers": {}
+        },
+        "responseReceived": {
+          "status": 200,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "87",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Thu, 08 Oct 2026 15:12:26 GMT",
+            "etag": "W/\"57-yDtgZQ0zP9o0japGkyEBr5XVlZE\"",
+            "keep-alive": "timeout=5",
+            "server": "Vulnerable-DAST-Testbed/1.0",
+            "x-powered-by": "Express/4.21.0-Vulnerable"
+          },
+          "bodyExcerpt": "{\"id\":42,\"username\":\"alice_admin\",\"email\":\"alice@company.local\",\"role\":\"administrator\"}"
+        }
+      },
+      "remediation": {
+        "explanation": "Configure a restrictive Content-Security-Policy header or use Helmet middleware.",
+        "codeSnippet": "import helmet from \"helmet\";\n\napp.use(helmet.contentSecurityPolicy({\n  directives: {\n    defaultSrc: [\"'self'\"]\n  }\n}));"
+      }
+    },
+    {
+      "id": "CORS-WILD-001",
+      "title": "Wildcard CORS Access-Control-Allow-Origin: *",
+      "severity": "MEDIUM",
+      "cvssScore": 5.5,
+      "endpoint": "/api/public-data",
+      "method": "GET",
+      "description": "The API sets 'Access-Control-Allow-Origin: *', allowing any arbitrary domain to access this resource.",
+      "evidence": {
+        "requestSent": {
+          "method": "GET",
+          "url": "http://127.0.0.1:3000/api/public-data",
+          "headers": {
+            "Origin": "https://audit-probe.example.com"
+          }
+        },
+        "responseReceived": {
+          "status": 200,
+          "headers": {
+            "access-control-allow-methods": "GET, OPTIONS",
+            "access-control-allow-origin": "*",
+            "connection": "keep-alive",
+            "content-length": "51",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Thu, 08 Oct 2026 15:12:26 GMT",
+            "etag": "W/\"33-v+Cy+OZn6r9X8c49dv8LVCXDMAk\"",
+            "keep-alive": "timeout=5",
+            "server": "Vulnerable-DAST-Testbed/1.0",
+            "x-powered-by": "Express/4.21.0-Vulnerable"
+          },
+          "bodyExcerpt": "{\"items\":[\"item1\",\"item2\",\"item3\"],\"isPublic\":true}"
+        }
+      },
+      "remediation": {
+        "explanation": "Restrict Access-Control-Allow-Origin to specific trusted domains instead of using a wildcard '*'.",
+        "codeSnippet": "import cors from \"cors\";\n\napp.use(cors({\n  origin: [\"https://app.example.com\"]\n}));"
+      }
+    },
+    {
+      "id": "HDR-CSP-001",
+      "title": "Missing Content-Security-Policy Header",
+      "severity": "MEDIUM",
+      "cvssScore": 5.5,
+      "endpoint": "/api/public-data",
+      "method": "GET",
+      "description": "The response does not include a Content-Security-Policy (CSP) header, which helps mitigate Cross-Site Scripting (XSS) and data injection risks.",
+      "evidence": {
+        "requestSent": {
+          "method": "GET",
+          "url": "http://127.0.0.1:3000/api/public-data",
+          "headers": {}
+        },
+        "responseReceived": {
+          "status": 200,
+          "headers": {
+            "access-control-allow-methods": "GET, OPTIONS",
+            "access-control-allow-origin": "*",
+            "connection": "keep-alive",
+            "content-length": "51",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Thu, 08 Oct 2026 15:12:26 GMT",
+            "etag": "W/\"33-v+Cy+OZn6r9X8c49dv8LVCXDMAk\"",
+            "keep-alive": "timeout=5",
+            "server": "Vulnerable-DAST-Testbed/1.0",
+            "x-powered-by": "Express/4.21.0-Vulnerable"
+          },
+          "bodyExcerpt": "{\"items\":[\"item1\",\"item2\",\"item3\"],\"isPublic\":true}"
+        }
+      },
+      "remediation": {
+        "explanation": "Configure a restrictive Content-Security-Policy header or use Helmet middleware.",
+        "codeSnippet": "import helmet from \"helmet\";\n\napp.use(helmet.contentSecurityPolicy({\n  directives: {\n    defaultSrc: [\"'self'\"]\n  }\n}));"
+      }
+    },
+    {
+      "id": "RATE-LIMIT-001",
+      "title": "Missing Rate Limiting Enforcement",
+      "severity": "MEDIUM",
+      "cvssScore": 5.5,
+      "endpoint": "/api/public-data",
+      "method": "GET",
+      "description": "The endpoint did not throttle or return HTTP 429 / Retry-After after a controlled burst of 30 requests, indicating missing rate limiting protections against automated abuse and resource exhaustion.",
+      "evidence": {
+        "requestSent": {
+          "method": "GET",
+          "url": "http://127.0.0.1:3000/api/public-data",
+          "headers": {
+            "X-Audit-Probe-Id": "rate-check-30"
+          }
+        },
+        "responseReceived": {
+          "status": 200,
+          "headers": {
+            "access-control-allow-methods": "GET, OPTIONS",
+            "access-control-allow-origin": "*",
+            "connection": "keep-alive",
+            "content-length": "51",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Thu, 08 Oct 2026 15:12:26 GMT",
+            "etag": "W/\"33-v+Cy+OZn6r9X8c49dv8LVCXDMAk\"",
+            "keep-alive": "timeout=5",
+            "server": "Vulnerable-DAST-Testbed/1.0",
+            "x-powered-by": "Express/4.21.0-Vulnerable"
+          },
+          "bodyExcerpt": "{\"items\":[\"item1\",\"item2\",\"item3\"],\"isPublic\":true}"
+        }
+      },
+      "remediation": {
+        "explanation": "Implement rate limiting using express-rate-limit to protect sensitive endpoints from abuse.",
+        "codeSnippet": "import rateLimit from \"express-rate-limit\";\n\nconst limiter = rateLimit({\n  windowMs: 15 * 60 * 1000, // 15 minutes\n  max: 100, // Limit each IP to 100 requests per window\n  standardHeaders: true,\n  legacyHeaders: false,\n  message: { error: \"Too many requests, please try again later.\" }\n});\n\napp.use(\"/api/public-data\", limiter);"
+      }
+    },
+    {
+      "id": "HDR-HSTS-001",
+      "title": "Missing Strict-Transport-Security (HSTS) Header",
+      "severity": "LOW",
+      "cvssScore": 3,
+      "endpoint": "/api/action-burst",
+      "method": "POST",
+      "description": "HSTS header is absent. While this scan was conducted over HTTP, ensure HSTS is enabled in production HTTPS environments.",
+      "evidence": {
+        "requestSent": {
+          "method": "HEAD",
+          "url": "http://127.0.0.1:3000/api/action-burst",
+          "headers": {}
+        },
+        "responseReceived": {
+          "status": 404,
+          "headers": {
+            "connection": "close",
+            "content-length": "156",
+            "content-security-policy": "default-src 'none'",
+            "content-type": "text/html; charset=utf-8",
+            "date": "Thu, 08 Oct 2026 15:12:26 GMT",
+            "server": "Vulnerable-DAST-Testbed/1.0",
+            "x-content-type-options": "nosniff",
+            "x-powered-by": "Express/4.21.0-Vulnerable"
+          },
+          "bodyExcerpt": ""
+        }
+      },
+      "remediation": {
+        "explanation": "Enable HSTS in production to instruct browsers to connect exclusively via HTTPS.",
+        "codeSnippet": "import helmet from \"helmet\";\n\n// Enables HSTS with 1 year max-age\napp.use(helmet.hsts({\n  maxAge: 31536000,\n  includeSubDomains: true,\n  preload: true\n}));"
+      }
+    },
+    {
+      "id": "HDR-XFO-001",
+      "title": "Missing X-Frame-Options Header",
+      "severity": "LOW",
+      "cvssScore": 3,
+      "endpoint": "/api/action-burst",
+      "method": "POST",
+      "description": "The response does not specify X-Frame-Options, leaving the endpoint susceptible to Clickjacking if rendered in a frame.",
+      "evidence": {
+        "requestSent": {
+          "method": "HEAD",
+          "url": "http://127.0.0.1:3000/api/action-burst",
+          "headers": {}
+        },
+        "responseReceived": {
+          "status": 404,
+          "headers": {
+            "connection": "close",
+            "content-length": "156",
+            "content-security-policy": "default-src 'none'",
+            "content-type": "text/html; charset=utf-8",
+            "date": "Thu, 08 Oct 2026 15:12:26 GMT",
+            "server": "Vulnerable-DAST-Testbed/1.0",
+            "x-content-type-options": "nosniff",
+            "x-powered-by": "Express/4.21.0-Vulnerable"
+          },
+          "bodyExcerpt": ""
+        }
+      },
+      "remediation": {
+        "explanation": "Set X-Frame-Options to DENY or SAMEORIGIN.",
+        "codeSnippet": "app.use((req, res, next) => {\n  res.setHeader(\"X-Frame-Options\", \"DENY\");\n  next();\n});"
+      }
+    },
+    {
+      "id": "INFO-LEAK-001",
+      "title": "Server Technology Leakage via X-Powered-By",
+      "severity": "LOW",
+      "cvssScore": 3,
+      "endpoint": "/api/action-burst",
+      "method": "POST",
+      "description": "The server exposes its underlying framework (Express/4.21.0-Vulnerable) in the X-Powered-By header, aiding attacker reconnaissance.",
+      "evidence": {
+        "requestSent": {
+          "method": "HEAD",
+          "url": "http://127.0.0.1:3000/api/action-burst",
+          "headers": {}
+        },
+        "responseReceived": {
+          "status": 404,
+          "headers": {
+            "connection": "close",
+            "content-length": "156",
+            "content-security-policy": "default-src 'none'",
+            "content-type": "text/html; charset=utf-8",
+            "date": "Thu, 08 Oct 2026 15:12:26 GMT",
+            "server": "Vulnerable-DAST-Testbed/1.0",
+            "x-content-type-options": "nosniff",
+            "x-powered-by": "Express/4.21.0-Vulnerable"
+          },
+          "bodyExcerpt": ""
+        }
+      },
+      "remediation": {
+        "explanation": "Disable the X-Powered-By header in Express.",
+        "codeSnippet": "app.disable(\"x-powered-by\");\n// Or using helmet:\napp.use(helmet.hidePoweredBy());"
+      }
+    },
+    {
+      "id": "INFO-LEAK-002",
+      "title": "Detailed Server Header Information Leakage",
+      "severity": "LOW",
+      "cvssScore": 3,
+      "endpoint": "/api/action-burst",
+      "method": "POST",
+      "description": "The Server response header reveals detailed versioning information (Vulnerable-DAST-Testbed/1.0).",
+      "evidence": {
+        "requestSent": {
+          "method": "HEAD",
+          "url": "http://127.0.0.1:3000/api/action-burst",
+          "headers": {}
+        },
+        "responseReceived": {
+          "status": 404,
+          "headers": {
+            "connection": "close",
+            "content-length": "156",
+            "content-security-policy": "default-src 'none'",
+            "content-type": "text/html; charset=utf-8",
+            "date": "Thu, 08 Oct 2026 15:12:26 GMT",
+            "server": "Vulnerable-DAST-Testbed/1.0",
+            "x-content-type-options": "nosniff",
+            "x-powered-by": "Express/4.21.0-Vulnerable"
+          },
+          "bodyExcerpt": ""
+        }
+      },
+      "remediation": {
+        "explanation": "Strip or sanitize the Server response header in your reverse proxy or application.",
+        "codeSnippet": "app.use((req, res, next) => {\n  res.removeHeader(\"Server\");\n  next();\n});"
+      }
+    },
+    {
+      "id": "HDR-CTO-001",
+      "title": "Missing or Invalid X-Content-Type-Options Header",
+      "severity": "LOW",
+      "cvssScore": 3,
+      "endpoint": "/api/private-profile",
+      "method": "GET",
+      "description": "The 'X-Content-Type-Options: nosniff' header is missing, allowing browsers to perform MIME-type sniffing.",
+      "evidence": {
+        "requestSent": {
+          "method": "GET",
+          "url": "http://127.0.0.1:3000/api/private-profile",
+          "headers": {}
+        },
+        "responseReceived": {
+          "status": 200,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "87",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Thu, 08 Oct 2026 15:12:26 GMT",
+            "etag": "W/\"57-yDtgZQ0zP9o0japGkyEBr5XVlZE\"",
+            "keep-alive": "timeout=5",
+            "server": "Vulnerable-DAST-Testbed/1.0",
+            "x-powered-by": "Express/4.21.0-Vulnerable"
+          },
+          "bodyExcerpt": "{\"id\":42,\"username\":\"alice_admin\",\"email\":\"alice@company.local\",\"role\":\"administrator\"}"
+        }
+      },
+      "remediation": {
+        "explanation": "Set X-Content-Type-Options: nosniff to prevent MIME type sniffing.",
+        "codeSnippet": "app.use((req, res, next) => {\n  res.setHeader(\"X-Content-Type-Options\", \"nosniff\");\n  next();\n});"
+      }
+    },
+    {
+      "id": "HDR-HSTS-001",
+      "title": "Missing Strict-Transport-Security (HSTS) Header",
+      "severity": "LOW",
+      "cvssScore": 3,
+      "endpoint": "/api/private-profile",
+      "method": "GET",
+      "description": "HSTS header is absent. While this scan was conducted over HTTP, ensure HSTS is enabled in production HTTPS environments.",
+      "evidence": {
+        "requestSent": {
+          "method": "GET",
+          "url": "http://127.0.0.1:3000/api/private-profile",
+          "headers": {}
+        },
+        "responseReceived": {
+          "status": 200,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "87",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Thu, 08 Oct 2026 15:12:26 GMT",
+            "etag": "W/\"57-yDtgZQ0zP9o0japGkyEBr5XVlZE\"",
+            "keep-alive": "timeout=5",
+            "server": "Vulnerable-DAST-Testbed/1.0",
+            "x-powered-by": "Express/4.21.0-Vulnerable"
+          },
+          "bodyExcerpt": "{\"id\":42,\"username\":\"alice_admin\",\"email\":\"alice@company.local\",\"role\":\"administrator\"}"
+        }
+      },
+      "remediation": {
+        "explanation": "Enable HSTS in production to instruct browsers to connect exclusively via HTTPS.",
+        "codeSnippet": "import helmet from \"helmet\";\n\n// Enables HSTS with 1 year max-age\napp.use(helmet.hsts({\n  maxAge: 31536000,\n  includeSubDomains: true,\n  preload: true\n}));"
+      }
+    },
+    {
+      "id": "HDR-XFO-001",
+      "title": "Missing X-Frame-Options Header",
+      "severity": "LOW",
+      "cvssScore": 3,
+      "endpoint": "/api/private-profile",
+      "method": "GET",
+      "description": "The response does not specify X-Frame-Options, leaving the endpoint susceptible to Clickjacking if rendered in a frame.",
+      "evidence": {
+        "requestSent": {
+          "method": "GET",
+          "url": "http://127.0.0.1:3000/api/private-profile",
+          "headers": {}
+        },
+        "responseReceived": {
+          "status": 200,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "87",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Thu, 08 Oct 2026 15:12:26 GMT",
+            "etag": "W/\"57-yDtgZQ0zP9o0japGkyEBr5XVlZE\"",
+            "keep-alive": "timeout=5",
+            "server": "Vulnerable-DAST-Testbed/1.0",
+            "x-powered-by": "Express/4.21.0-Vulnerable"
+          },
+          "bodyExcerpt": "{\"id\":42,\"username\":\"alice_admin\",\"email\":\"alice@company.local\",\"role\":\"administrator\"}"
+        }
+      },
+      "remediation": {
+        "explanation": "Set X-Frame-Options to DENY or SAMEORIGIN.",
+        "codeSnippet": "app.use((req, res, next) => {\n  res.setHeader(\"X-Frame-Options\", \"DENY\");\n  next();\n});"
+      }
+    },
+    {
+      "id": "INFO-LEAK-001",
+      "title": "Server Technology Leakage via X-Powered-By",
+      "severity": "LOW",
+      "cvssScore": 3,
+      "endpoint": "/api/private-profile",
+      "method": "GET",
+      "description": "The server exposes its underlying framework (Express/4.21.0-Vulnerable) in the X-Powered-By header, aiding attacker reconnaissance.",
+      "evidence": {
+        "requestSent": {
+          "method": "GET",
+          "url": "http://127.0.0.1:3000/api/private-profile",
+          "headers": {}
+        },
+        "responseReceived": {
+          "status": 200,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "87",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Thu, 08 Oct 2026 15:12:26 GMT",
+            "etag": "W/\"57-yDtgZQ0zP9o0japGkyEBr5XVlZE\"",
+            "keep-alive": "timeout=5",
+            "server": "Vulnerable-DAST-Testbed/1.0",
+            "x-powered-by": "Express/4.21.0-Vulnerable"
+          },
+          "bodyExcerpt": "{\"id\":42,\"username\":\"alice_admin\",\"email\":\"alice@company.local\",\"role\":\"administrator\"}"
+        }
+      },
+      "remediation": {
+        "explanation": "Disable the X-Powered-By header in Express.",
+        "codeSnippet": "app.disable(\"x-powered-by\");\n// Or using helmet:\napp.use(helmet.hidePoweredBy());"
+      }
+    },
+    {
+      "id": "INFO-LEAK-002",
+      "title": "Detailed Server Header Information Leakage",
+      "severity": "LOW",
+      "cvssScore": 3,
+      "endpoint": "/api/private-profile",
+      "method": "GET",
+      "description": "The Server response header reveals detailed versioning information (Vulnerable-DAST-Testbed/1.0).",
+      "evidence": {
+        "requestSent": {
+          "method": "GET",
+          "url": "http://127.0.0.1:3000/api/private-profile",
+          "headers": {}
+        },
+        "responseReceived": {
+          "status": 200,
+          "headers": {
+            "connection": "keep-alive",
+            "content-length": "87",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Thu, 08 Oct 2026 15:12:26 GMT",
+            "etag": "W/\"57-yDtgZQ0zP9o0japGkyEBr5XVlZE\"",
+            "keep-alive": "timeout=5",
+            "server": "Vulnerable-DAST-Testbed/1.0",
+            "x-powered-by": "Express/4.21.0-Vulnerable"
+          },
+          "bodyExcerpt": "{\"id\":42,\"username\":\"alice_admin\",\"email\":\"alice@company.local\",\"role\":\"administrator\"}"
+        }
+      },
+      "remediation": {
+        "explanation": "Strip or sanitize the Server response header in your reverse proxy or application.",
+        "codeSnippet": "app.use((req, res, next) => {\n  res.removeHeader(\"Server\");\n  next();\n});"
+      }
+    },
+    {
+      "id": "HDR-CTO-001",
+      "title": "Missing or Invalid X-Content-Type-Options Header",
+      "severity": "LOW",
+      "cvssScore": 3,
+      "endpoint": "/api/public-data",
+      "method": "GET",
+      "description": "The 'X-Content-Type-Options: nosniff' header is missing, allowing browsers to perform MIME-type sniffing.",
+      "evidence": {
+        "requestSent": {
+          "method": "GET",
+          "url": "http://127.0.0.1:3000/api/public-data",
+          "headers": {}
+        },
+        "responseReceived": {
+          "status": 200,
+          "headers": {
+            "access-control-allow-methods": "GET, OPTIONS",
+            "access-control-allow-origin": "*",
+            "connection": "keep-alive",
+            "content-length": "51",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Thu, 08 Oct 2026 15:12:26 GMT",
+            "etag": "W/\"33-v+Cy+OZn6r9X8c49dv8LVCXDMAk\"",
+            "keep-alive": "timeout=5",
+            "server": "Vulnerable-DAST-Testbed/1.0",
+            "x-powered-by": "Express/4.21.0-Vulnerable"
+          },
+          "bodyExcerpt": "{\"items\":[\"item1\",\"item2\",\"item3\"],\"isPublic\":true}"
+        }
+      },
+      "remediation": {
+        "explanation": "Set X-Content-Type-Options: nosniff to prevent MIME type sniffing.",
+        "codeSnippet": "app.use((req, res, next) => {\n  res.setHeader(\"X-Content-Type-Options\", \"nosniff\");\n  next();\n});"
+      }
+    },
+    {
+      "id": "HDR-HSTS-001",
+      "title": "Missing Strict-Transport-Security (HSTS) Header",
+      "severity": "LOW",
+      "cvssScore": 3,
+      "endpoint": "/api/public-data",
+      "method": "GET",
+      "description": "HSTS header is absent. While this scan was conducted over HTTP, ensure HSTS is enabled in production HTTPS environments.",
+      "evidence": {
+        "requestSent": {
+          "method": "GET",
+          "url": "http://127.0.0.1:3000/api/public-data",
+          "headers": {}
+        },
+        "responseReceived": {
+          "status": 200,
+          "headers": {
+            "access-control-allow-methods": "GET, OPTIONS",
+            "access-control-allow-origin": "*",
+            "connection": "keep-alive",
+            "content-length": "51",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Thu, 08 Oct 2026 15:12:26 GMT",
+            "etag": "W/\"33-v+Cy+OZn6r9X8c49dv8LVCXDMAk\"",
+            "keep-alive": "timeout=5",
+            "server": "Vulnerable-DAST-Testbed/1.0",
+            "x-powered-by": "Express/4.21.0-Vulnerable"
+          },
+          "bodyExcerpt": "{\"items\":[\"item1\",\"item2\",\"item3\"],\"isPublic\":true}"
+        }
+      },
+      "remediation": {
+        "explanation": "Enable HSTS in production to instruct browsers to connect exclusively via HTTPS.",
+        "codeSnippet": "import helmet from \"helmet\";\n\n// Enables HSTS with 1 year max-age\napp.use(helmet.hsts({\n  maxAge: 31536000,\n  includeSubDomains: true,\n  preload: true\n}));"
+      }
+    },
+    {
+      "id": "HDR-XFO-001",
+      "title": "Missing X-Frame-Options Header",
+      "severity": "LOW",
+      "cvssScore": 3,
+      "endpoint": "/api/public-data",
+      "method": "GET",
+      "description": "The response does not specify X-Frame-Options, leaving the endpoint susceptible to Clickjacking if rendered in a frame.",
+      "evidence": {
+        "requestSent": {
+          "method": "GET",
+          "url": "http://127.0.0.1:3000/api/public-data",
+          "headers": {}
+        },
+        "responseReceived": {
+          "status": 200,
+          "headers": {
+            "access-control-allow-methods": "GET, OPTIONS",
+            "access-control-allow-origin": "*",
+            "connection": "keep-alive",
+            "content-length": "51",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Thu, 08 Oct 2026 15:12:26 GMT",
+            "etag": "W/\"33-v+Cy+OZn6r9X8c49dv8LVCXDMAk\"",
+            "keep-alive": "timeout=5",
+            "server": "Vulnerable-DAST-Testbed/1.0",
+            "x-powered-by": "Express/4.21.0-Vulnerable"
+          },
+          "bodyExcerpt": "{\"items\":[\"item1\",\"item2\",\"item3\"],\"isPublic\":true}"
+        }
+      },
+      "remediation": {
+        "explanation": "Set X-Frame-Options to DENY or SAMEORIGIN.",
+        "codeSnippet": "app.use((req, res, next) => {\n  res.setHeader(\"X-Frame-Options\", \"DENY\");\n  next();\n});"
+      }
+    },
+    {
+      "id": "INFO-LEAK-001",
+      "title": "Server Technology Leakage via X-Powered-By",
+      "severity": "LOW",
+      "cvssScore": 3,
+      "endpoint": "/api/public-data",
+      "method": "GET",
+      "description": "The server exposes its underlying framework (Express/4.21.0-Vulnerable) in the X-Powered-By header, aiding attacker reconnaissance.",
+      "evidence": {
+        "requestSent": {
+          "method": "GET",
+          "url": "http://127.0.0.1:3000/api/public-data",
+          "headers": {}
+        },
+        "responseReceived": {
+          "status": 200,
+          "headers": {
+            "access-control-allow-methods": "GET, OPTIONS",
+            "access-control-allow-origin": "*",
+            "connection": "keep-alive",
+            "content-length": "51",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Thu, 08 Oct 2026 15:12:26 GMT",
+            "etag": "W/\"33-v+Cy+OZn6r9X8c49dv8LVCXDMAk\"",
+            "keep-alive": "timeout=5",
+            "server": "Vulnerable-DAST-Testbed/1.0",
+            "x-powered-by": "Express/4.21.0-Vulnerable"
+          },
+          "bodyExcerpt": "{\"items\":[\"item1\",\"item2\",\"item3\"],\"isPublic\":true}"
+        }
+      },
+      "remediation": {
+        "explanation": "Disable the X-Powered-By header in Express.",
+        "codeSnippet": "app.disable(\"x-powered-by\");\n// Or using helmet:\napp.use(helmet.hidePoweredBy());"
+      }
+    },
+    {
+      "id": "INFO-LEAK-002",
+      "title": "Detailed Server Header Information Leakage",
+      "severity": "LOW",
+      "cvssScore": 3,
+      "endpoint": "/api/public-data",
+      "method": "GET",
+      "description": "The Server response header reveals detailed versioning information (Vulnerable-DAST-Testbed/1.0).",
+      "evidence": {
+        "requestSent": {
+          "method": "GET",
+          "url": "http://127.0.0.1:3000/api/public-data",
+          "headers": {}
+        },
+        "responseReceived": {
+          "status": 200,
+          "headers": {
+            "access-control-allow-methods": "GET, OPTIONS",
+            "access-control-allow-origin": "*",
+            "connection": "keep-alive",
+            "content-length": "51",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Thu, 08 Oct 2026 15:12:26 GMT",
+            "etag": "W/\"33-v+Cy+OZn6r9X8c49dv8LVCXDMAk\"",
+            "keep-alive": "timeout=5",
+            "server": "Vulnerable-DAST-Testbed/1.0",
+            "x-powered-by": "Express/4.21.0-Vulnerable"
+          },
+          "bodyExcerpt": "{\"items\":[\"item1\",\"item2\",\"item3\"],\"isPublic\":true}"
+        }
+      },
+      "remediation": {
+        "explanation": "Strip or sanitize the Server response header in your reverse proxy or application.",
+        "codeSnippet": "app.use((req, res, next) => {\n  res.removeHeader(\"Server\");\n  next();\n});"
+      }
+    }
+  ]
+}

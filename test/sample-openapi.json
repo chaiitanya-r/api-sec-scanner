@@ -1,0 +1,60 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Sample JSON Test API",
+    "version": "1.0.0",
+    "description": "Sample API specification in JSON format"
+  },
+  "security": [
+    {
+      "apiKeyAuth": []
+    }
+  ],
+  "paths": {
+    "/products/{slug}": {
+      "parameters": [
+        {
+          "name": "slug",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "example": "widget-123"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Get product by slug",
+        "responses": {
+          "200": { "description": "OK" },
+          "404": { "description": "Not Found" }
+        }
+      },
+      "delete": {
+        "summary": "Delete product",
+        "responses": {
+          "204": { "description": "Deleted" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/ping": {
+      "get": {
+        "summary": "Public ping",
+        "security": [],
+        "responses": {
+          "200": { "description": "Pong" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "apiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-KEY"
+      }
+    }
+  }
+}
